@@ -1158,6 +1158,16 @@ class SystemMessage:
     data: dict[str, Any]
 
 
+@dataclass
+class UnknownMessage:
+    """Forward-compatible wrapper for an unrecognized top-level CLI message."""
+
+    type: str
+    data: dict[str, Any]
+    uuid: str | None = None
+    session_id: str | None = None
+
+
 class TaskUsage(TypedDict):
     """Usage statistics reported in task_progress and task_notification messages."""
 
@@ -1504,6 +1514,7 @@ Message = (
     | StreamEvent
     | RateLimitEvent
     | ConversationResetMessage
+    | UnknownMessage
 )
 
 
