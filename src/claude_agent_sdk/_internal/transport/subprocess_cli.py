@@ -906,6 +906,13 @@ class SubprocessCLITransport(Transport):
                 )
                 self._exit_error = error
                 raise error from e
+            if platform.system() == "Windows" and getattr(e, "winerror", None) == 206:
+                error = CLIConnectionError(
+                    "Failed to start Claude Code: command line is too long for Windows "
+                    "(WinError 206)"
+                )
+                self._exit_error = error
+                raise error from e
             error = CLINotFoundError(f"Claude Code not found at: {self._cli_path}")
             self._exit_error = error
             raise error from e
