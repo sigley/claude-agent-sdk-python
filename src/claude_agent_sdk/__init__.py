@@ -163,6 +163,7 @@ from .types import (
     ToolPermissionContext,
     ToolResultBlock,
     ToolUseBlock,
+    UnknownMessage,
     UserMessage,
     UserPromptSubmitHookInput,
 )
@@ -658,6 +659,7 @@ __all__ = [
     "RateLimitType",
     "StreamEvent",
     "ConversationResetMessage",
+    "UnknownMessage",
     "Message",
     "MessageOrigin",
     "MessageOriginKind",
