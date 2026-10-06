@@ -588,6 +588,40 @@ class TestSubprocessCLITransport:
 
         anyio.run(_test)
 
+    def test_windows_command_line_too_long_is_not_reported_as_cli_missing(self):
+        """WinError 206 should surface as a connection error, not CLINotFoundError."""
+
+        async def _test():
+            from claude_agent_sdk._errors import CLIConnectionError
+
+            transport = SubprocessCLITransport(
+                prompt="test",
+                options=make_options(),
+            )
+            error = FileNotFoundError(2, "The filename or extension is too long")
+            error.winerror = 206
+
+            with (
+                patch.dict(
+                    os.environ,
+                    {"CLAUDE_AGENT_SDK_SKIP_VERSION_CHECK": "1"},
+                    clear=False,
+                ),
+                patch(
+                    "claude_agent_sdk._internal.transport.subprocess_cli.platform.system",
+                    return_value="Windows",
+                ),
+                patch("anyio.open_process", new_callable=AsyncMock) as mock_open_process,
+                pytest.raises(CLIConnectionError) as exc_info,
+            ):
+                mock_open_process.side_effect = error
+                await transport.connect()
+
+            assert "command line is too long for Windows" in str(exc_info.value)
+            assert "WinError 206" in str(exc_info.value)
+
+        anyio.run(_test)
+
     def test_build_command_with_settings_file(self):
         """Test building CLI command with settings as file path."""
         transport = SubprocessCLITransport(
