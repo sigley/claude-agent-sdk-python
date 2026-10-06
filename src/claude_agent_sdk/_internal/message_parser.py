@@ -28,6 +28,7 @@ from ..types import (
     ThinkingBlock,
     ToolResultBlock,
     ToolUseBlock,
+    UnknownMessage,
     UserMessage,
 )
 
@@ -391,5 +392,10 @@ def parse_message(data: dict[str, Any]) -> Message | None:
         case _:
             # Forward-compatible: skip unrecognized message types so newer
             # CLI versions don't crash older SDK versions.
-            logger.debug("Skipping unknown message type: %s", message_type)
-            return None
+            logger.debug("Preserving unknown message type: %s", message_type)
+            return UnknownMessage(
+                type=message_type,
+                data=data,
+                uuid=data.get("uuid"),
+                session_id=data.get("session_id"),
+            )
