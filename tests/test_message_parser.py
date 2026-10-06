@@ -23,12 +23,42 @@ from claude_agent_sdk.types import (
     ThinkingBlock,
     ToolResultBlock,
     ToolUseBlock,
+    UnknownMessage,
     UserMessage,
 )
 
 
 class TestMessageParser:
     """Test message parsing with the new exception behavior."""
+
+    @pytest.mark.parametrize(
+        "message_type",
+        [
+            "tool_progress",
+            "tool_use_summary",
+            "auth_status",
+            "active_goal",
+            "prompt_suggestion",
+            "future_cli_message",
+        ],
+    )
+    def test_preserves_unknown_top_level_message(self, message_type):
+        """Unknown top-level frames remain observable for forward compatibility."""
+        data = {
+            "type": message_type,
+            "uuid": "uuid-unknown",
+            "session_id": "session-unknown",
+            "future_field": {"nested": True},
+        }
+
+        message = parse_message(data)
+
+        assert isinstance(message, UnknownMessage)
+        assert message.type == message_type
+        assert message.data == data
+        assert message.uuid == "uuid-unknown"
+        assert message.session_id == "session-unknown"
+
 
     def test_parse_valid_user_message(self):
         """Test parsing a valid user message."""
