@@ -56,10 +56,10 @@ def parse_message(data: dict[str, Any]) -> Message | None:
         data: Raw message dictionary from CLI output
 
     Returns:
-        Parsed Message object
+        Parsed Message object, using UnknownMessage for unrecognized top-level types
 
     Raises:
-        MessageParseError: If parsing fails or message type is unrecognized
+        MessageParseError: If parsing a recognized message fails or type is missing
     """
     if not isinstance(data, dict):
         raise MessageParseError(
