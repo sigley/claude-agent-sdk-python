@@ -200,7 +200,7 @@ class InternalClient:
                 # Stream input in background for async iterables
                 query.spawn_task(query.stream_input(prompt))
 
-            # Yield parsed messages, skipping unknown message types
+            # Yield parsed messages; parser-level filtering remains supported
             async for data in query.receive_messages():
                 message = parse_message(data)
                 if message is not None:
