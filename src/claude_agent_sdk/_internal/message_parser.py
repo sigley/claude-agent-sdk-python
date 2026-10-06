@@ -390,8 +390,8 @@ def parse_message(data: dict[str, Any]) -> Message | None:
                 ) from e
 
         case _:
-            # Forward-compatible: skip unrecognized message types so newer
-            # CLI versions don't crash older SDK versions.
+            # Forward-compatible: preserve unrecognized message types so
+            # callers can still observe frames added by newer CLI versions.
             logger.debug("Preserving unknown message type: %s", message_type)
             return UnknownMessage(
                 type=message_type,
