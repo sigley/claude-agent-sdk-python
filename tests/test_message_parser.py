@@ -59,7 +59,6 @@ class TestMessageParser:
         assert message.uuid == "uuid-unknown"
         assert message.session_id == "session-unknown"
 
-
     def test_parse_valid_user_message(self):
         """Test parsing a valid user message."""
         data = {
