@@ -39,7 +39,6 @@ class TestMessageParser:
             "auth_status",
             "active_goal",
             "prompt_suggestion",
-            "future_cli_message",
         ],
     )
     def test_preserves_unknown_top_level_message(self, message_type):
@@ -1012,9 +1011,12 @@ class TestMessageParser:
         assert "Message missing 'type' field" in str(exc_info.value)
 
     def test_parse_unknown_message_type(self):
-        """Test that unknown message type returns None for forward compatibility."""
-        result = parse_message({"type": "unknown_type"})
-        assert result is None
+        """Test that unknown message types are preserved for forward compatibility."""
+        data = {"type": "unknown_type"}
+        result = parse_message(data)
+        assert isinstance(result, UnknownMessage)
+        assert result.type == "unknown_type"
+        assert result.data == data
 
     def test_parse_user_message_missing_fields(self):
         """Test that user message with missing fields raises MessageParseError."""
