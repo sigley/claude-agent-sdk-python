@@ -389,6 +389,19 @@ def _python_type_to_json_schema(py_type: Any) -> dict[str, Any]:
     return {"type": "string"}
 
 
+def _typeddict_field_requiredness(field_type: Any) -> bool | None:
+    """Return an explicit Required/NotRequired marker, if present."""
+    origin = get_origin(field_type)
+    marker = getattr(origin, "_name", None)
+    if marker == "Required":
+        return True
+    if marker == "NotRequired":
+        return False
+    if marker == "ReadOnly" or origin is Annotated:
+        return _typeddict_field_requiredness(get_args(field_type)[0])
+    return None
+
+
 def _typeddict_to_json_schema(td_class: type) -> dict[str, Any]:
     """Convert a TypedDict class to a JSON Schema dict."""
     hints = _get_type_hints(td_class, include_extras=True)
@@ -397,7 +410,19 @@ def _typeddict_to_json_schema(td_class: type) -> dict[str, Any]:
     for field_name, field_type in hints.items():
         properties[field_name] = _python_type_to_json_schema(field_type)
 
-    required_keys = getattr(td_class, "__required_keys__", set(properties.keys()))
+    required_keys = set(
+        getattr(td_class, "__required_keys__", set(properties.keys()))
+    )
+    # Under postponed annotations, TypedDict runtime key metadata cannot see
+    # Required/NotRequired markers. Evaluated hints can, so let explicit
+    # markers correct the metadata while retaining it for ordinary/inherited keys.
+    for field_name, field_type in hints.items():
+        requiredness = _typeddict_field_requiredness(field_type)
+        if requiredness is True:
+            required_keys.add(field_name)
+        elif requiredness is False:
+            required_keys.discard(field_name)
+
     schema: dict[str, Any] = {
         "type": "object",
         "properties": properties,
